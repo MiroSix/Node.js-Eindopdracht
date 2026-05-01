@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
   {
@@ -43,6 +44,27 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Password hashen voor het opslaan
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Vergelijkt hashes van wachtwoorden
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+// Verwijdert wachtwoord en __v bij het teruggeven van user data
+userSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  delete obj.__v;
+  return obj;
+};
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
