@@ -26,31 +26,6 @@ const eventSchema = new mongoose.Schema(
   { _id: true }
 );
 
-const eventSchema = new mongoose.Schema(
-  {
-    type: {
-      type: String,
-      enum: ['kill', 'objective', 'round_win', 'penalty', 'custom'],
-      required: true,
-    },
-    team: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Team',
-      required: true,
-    },
-    description: {
-      type: String,
-      maxlength: [200, 'Event description cannot exceed 200 characters'],
-      default: '',
-    },
-    timestamp: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-  { _id: true }
-);
-
 // Schema voor een match tussen twee teams in een toernooi
 const matchSchema = new mongoose.Schema(
   {

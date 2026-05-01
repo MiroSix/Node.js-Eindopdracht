@@ -4,6 +4,8 @@ const Match = require('../models/Match');
 const Tournament = require('../models/Tournament');
 const Team = require('../models/Team');
 const AppError = require('../errors/AppError');
+const admin = require('../middleware/admin');
+const validateObjectId = require('../middleware/validateObjectId');
 
 const router = express.Router();
 
