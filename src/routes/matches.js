@@ -6,6 +6,7 @@ const Team = require('../models/Team');
 const AppError = require('../errors/AppError');
 const admin = require('../middleware/admin');
 const validateObjectId = require('../middleware/validateObjectId');
+const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -154,8 +155,7 @@ router.get('/:id', validateObjectId('id'), async (req, res, next) => {
  * Admin only. Registreert het resultaat van een match en werkt het toernooi-bracket bij indien nodig.
  */
 
-//AUTH MIDDLEWARE NOG NODIG
-router.put('/:id/result', admin, validateObjectId('id'), async (req, res, next) => {
+router.put('/:id/result', auth, admin, validateObjectId('id'), async (req, res, next) => {
   try {
     const match = await Match.findById(req.params.id);
     if (!match) return next(new AppError('Match not found', 404));
@@ -220,8 +220,7 @@ router.put('/:id/result', admin, validateObjectId('id'), async (req, res, next) 
  * POST /api/matches/:id/events
  * Admin only. Voeg een event toe aan een match. Match moet nog niet voltooid zijn.
  */
-//AUTH MIDDLEWARE NOG NODIG
-router.post('/:id/events', admin, validateObjectId('id'), async (req, res, next) => {
+router.post('/:id/events', auth, admin, validateObjectId('id'), async (req, res, next) => {
   try {
     const match = await Match.findById(req.params.id);
     if (!match) return next(new AppError('Match not found', 404));
@@ -274,10 +273,9 @@ router.post('/:id/events', admin, validateObjectId('id'), async (req, res, next)
 
 /**
  * PATCH /api/matches/:id/forfeit
- * Admin only. Record a forfeit result.
+ * Admin only. Dient om forfeits te registreren.
  */
-//AUTH MIDDLEWARE NOG NODIG
-router.patch('/:id/forfeit', admin, validateObjectId('id'), async (req, res, next) => {
+router.patch('/:id/forfeit', auth, admin, validateObjectId('id'), async (req, res, next) => {
   try {
     const match = await Match.findById(req.params.id);
     if (!match) return next(new AppError('Match not found', 404));
