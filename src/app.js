@@ -1,13 +1,23 @@
 const express = require('express');
+const helmet = require('helmet');
+const morgan = require('morgan');
 
 // Alle routes importeren
 const authRoutes = require('./routes/auth');
-//const userRoutes = require('./routes/users');
-//const teamRoutes = require('./routes/teams');
-//const tournamentRoutes = require('./routes/tournaments');
+const userRoutes = require('./routes/users');
+const teamRoutes = require('./routes/teams');
+const tournamentRoutes = require('./routes/tournaments');
 const matchRoutes = require('./routes/matches');
 
 const app = express();
+
+// Voegt security headers toe aan alle responses
+app.use(helmet());
+
+// Logging middleware, alleen in development
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('dev'));
+}
 
 app.use(express.json());
 
@@ -16,9 +26,9 @@ app.use(express.urlencoded({ extended: false }));
 
 // Routes registreren
 app.use('/api/auth', authRoutes);
-//app.use('/api/users', userRoutes);
-//app.use('/api/teams', teamRoutes);
-//app.use('/api/tournaments', tournamentRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/matches', matchRoutes);
 
 
