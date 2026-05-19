@@ -276,6 +276,31 @@ router.post('/:id/register', auth, validateObjectId('id'), async (req, res, next
 });
 
 /**
+ * PATCH /api/tournaments/:id/cancel
+ * Admin only. Annuleert een toernooi dat nog niet voltooid is.
+ */
+router.patch('/:id/cancel', auth, admin, validateObjectId('id'), async (req, res, next) => {
+  try {
+    const tournament = await Tournament.findById(req.params.id);
+    if (!tournament) return next(new AppError('Tournament not found', 404));
+
+    if (tournament.status === 'completed') {
+      return next(new AppError('A completed tournament cannot be cancelled', 400));
+    }
+    if (tournament.status === 'cancelled') {
+      return next(new AppError('Tournament is already cancelled', 400));
+    }
+
+    tournament.status = 'cancelled';
+    await tournament.save();
+
+    res.status(200).json({ status: 'success', data: { tournament } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * POST /api/tournaments/:id/start
  * Admin only. Registraties sluiten en het toernooi-bracket genereren. Vereist minimaal 2 teams.
  */

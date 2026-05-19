@@ -1,0 +1,207 @@
+# Om de REST Client requests te gebruiken moet je eerst registreren en inloggen om een geldig token te krijgen.
+# Deze komen in de onderstaande velden, de id's moeten ook vervangen worden door echte id's uit de database.
+
+@baseUrl    = http://localhost:3000/api
+@token      = VERVANG_MET_JWT_TOKEN
+@userId     = VERVANG_MET_USER_ID
+@teamId     = VERVANG_MET_TEAM_ID
+@tournId    = VERVANG_MET_TOURNAMENT_ID
+@matchId    = VERVANG_MET_MATCH_ID
+
+# ──────────────────────────────────────────────────────────────────────────────
+# AUTH
+# ──────────────────────────────────────────────────────────────────────────────
+
+### Registreer een nieuwe gebruiker
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "testspeler",
+  "email": "testspeler@example.com",
+  "password": "veiligWW123"
+}
+
+###  Inloggen (kopieer de token naar @token hierboven)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "testspeler@example.com",
+  "password": "veiligWW123"
+}
+
+### Haal het eigen profiel op (vereist token)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# USERS
+# ──────────────────────────────────────────────────────────────────────────────
+
+### Geef alle gebruikers terug (admin only)
+GET {{baseUrl}}/users?page=1&limit=20
+Authorization: Bearer {{token}}
+
+### Geef één gebruiker terug
+GET {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{token}}
+
+### Update eigen profiel (password en role worden genegeerd)
+PUT {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "nieuweNaam",
+  "email": "nieuw@example.com"
+}
+
+### Verwijder een gebruiker (admin only)
+DELETE {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{token}}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TEAMS
+# ──────────────────────────────────────────────────────────────────────────────
+
+### Geef alle actieve teams terug (publiek)
+GET {{baseUrl}}/teams?page=1&limit=20
+
+### Maak een nieuw team aan (aanmaker wordt automatisch captain)
+POST {{baseUrl}}/teams
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Team Alpha",
+  "tag": "ALPH",
+  "description": "Een competitief gaming team"
+}
+
+### Geef één team terug (publiek)
+GET {{baseUrl}}/teams/{{teamId}}
+
+### Update teamdetails (captain of admin; alleen admin mag naam/tag wijzigen)
+PUT {{baseUrl}}/teams/{{teamId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Bijgewerkte teambeschrijving"
+}
+
+### Verwijder (disband) een team — soft delete via isActive flag
+DELETE {{baseUrl}}/teams/{{teamId}}
+Authorization: Bearer {{token}}
+
+### Sluit je aan bij een team
+POST {{baseUrl}}/teams/{{teamId}}/join
+Authorization: Bearer {{token}}
+
+### Verlaat een team (captain moet eerst disbanden)
+DELETE {{baseUrl}}/teams/{{teamId}}/leave
+Authorization: Bearer {{token}}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TOURNAMENTS
+# ──────────────────────────────────────────────────────────────────────────────
+
+### Geef alle toernooien terug met optionele filters (publiek)
+GET {{baseUrl}}/tournaments?status=registration&game=valorant&page=1&limit=20
+
+### Maak een nieuw toernooi aan (admin only)
+POST {{baseUrl}}/tournaments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "VIVES Cup 2026",
+  "game": "Valorant",
+  "format": "single_elimination",
+  "settings": {
+    "maxTeams": 8,
+    "startDate": "2026-09-01T10:00:00.000Z",
+    "prizePool": "€500",
+    "description": "Jaarlijks kampioenschap voor VIVES studenten"
+  }
+}
+
+### Geef één toernooi terug inclusief bracket (publiek)
+GET {{baseUrl}}/tournaments/{{tournId}}
+
+### Update toernooigegevens (admin only)
+PUT {{baseUrl}}/tournaments/{{tournId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "VIVES Cup 2026 — Editie 2",
+  "settings": {
+    "prizePool": "€750",
+    "description": "Bijgewerkte beschrijving"
+  }
+}
+
+### Verwijder een toernooi — niet mogelijk als status 'ongoing' is (admin only)
+DELETE {{baseUrl}}/tournaments/{{tournId}}
+Authorization: Bearer {{token}}
+
+### Schrijf een team in voor een toernooi (team captain)
+POST {{baseUrl}}/tournaments/{{tournId}}/register
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "teamId": "{{teamId}}"
+}
+
+### Start het toernooi en genereer het bracket (admin only, min. 2 teams)
+POST {{baseUrl}}/tournaments/{{tournId}}/start
+Authorization: Bearer {{token}}
+
+### Annuleer een toernooi (admin only)
+PATCH {{baseUrl}}/tournaments/{{tournId}}/cancel
+Authorization: Bearer {{token}}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# MATCHES
+# ──────────────────────────────────────────────────────────────────────────────
+
+### Geef alle matches terug met optionele filters (publiek)
+GET {{baseUrl}}/matches?tournamentId={{tournId}}&status=scheduled&page=1&limit=20
+
+### Geef één match terug inclusief events (publiek)
+GET {{baseUrl}}/matches/{{matchId}}
+
+### Registreer het resultaat van een match (admin only)
+PUT {{baseUrl}}/matches/{{matchId}}/result
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "teamAScore": 13,
+  "teamBScore": 7,
+  "winnerId": "VERVANG_MET_WINNING_TEAM_ID",
+  "notes": "Spannende finale, gewonnen in overtime"
+}
+
+### Voeg een event toe aan een lopende match (admin only)
+POST {{baseUrl}}/matches/{{matchId}}/events
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "type": "round_win",
+  "teamId": "VERVANG_MET_TEAM_ID",
+  "description": "Team Alpha wint ronde 5 na clutch play"
+}
+
+### Registreer een forfeit (admin only)
+PATCH {{baseUrl}}/matches/{{matchId}}/forfeit
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "forfeitingTeamId": "VERVANG_MET_TEAM_ID"
+}
