@@ -1,6 +1,8 @@
 const express = require('express');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
 const AppError = require('./errors/AppError');
 
 // Alle routes importeren
@@ -22,6 +24,9 @@ if (process.env.NODE_ENV !== 'test') {
 
 app.use(express.json({ limit: '10kb' })); // Veiligheidsmaatregel tegen grote payloads
 app.use(express.urlencoded({ extended: false }));
+
+// Swagger documentatie (beschikbaar op /api-docs)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes registreren
 app.use('/api/auth', authRoutes);

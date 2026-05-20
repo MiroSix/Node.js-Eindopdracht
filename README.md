@@ -3,7 +3,7 @@
 REST API voor het beheren van gaming toernooien, teams en matches.
 
 **Live API:** `https://staatnognietonline`
-**Documentatie:** `https://bestaatooknogniet`
+**Documentatie:** `https://url/api-docs`
 
 ---
 
