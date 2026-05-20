@@ -300,7 +300,9 @@ router.patch('/:id/forfeit', auth, admin, validateObjectId('id'), async (req, re
     match.winner = winner;
     match.status = 'forfeit';
     match.completedAt = new Date();
-    match.notes = `Forfeit by team ${forfeitingTeamId}`;
+    
+    const forfeitingTeam = await Team.findById(forfeitingTeamId).select('name');
+    match.notes = `Forfeit by team ${forfeitingTeam ? forfeitingTeam.name : forfeitingTeamId}`;
 
     await match.save();
 

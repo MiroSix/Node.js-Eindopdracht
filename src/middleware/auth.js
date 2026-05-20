@@ -35,26 +35,4 @@ const auth = async (req, res, next) => {
   }
 };
 
-/**
- * Optionele authenticatie middleware. Als er een geldig token is, wordt req.user gezet, anders gaat het gewoon door zonder foutmelding.
- */
-const optionalAuth = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) return next();
-
-    const token = authHeader.split(' ')[1];
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-    if (user) {
-      req.user = user;
-      req.token = token;
-    }
-    next();
-  } catch {
-    next();
-  }
-};
-
-module.exports = { auth, optionalAuth };
+module.exports = { auth };

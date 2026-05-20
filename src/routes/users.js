@@ -45,6 +45,11 @@ router.get('/:id', auth, validateObjectId('id'), async (req, res, next) => {
     const user = await User.findById(req.params.id);
     if (!user) return next(new AppError('User not found', 404));
 
+    const isOwnProfile = req.user._id.toString() === req.params.id;
+    if (!isOwnProfile && req.user.role !== 'admin') {
+      return next(new AppError('You do not have permission to view this profile', 403));
+    }
+
     res.status(200).json({ status: 'success', data: { user } });
   } catch (err) {
     next(err);
@@ -84,6 +89,47 @@ router.put('/:id', auth, validateObjectId('id'), async (req, res, next) => {
       const field = Object.keys(err.keyPattern)[0];
       return next(new AppError(`This ${field} is already taken.`, 409));
     }
+    next(err);
+  }
+});
+
+/**
+ * PATCH /api/users/:id/password
+ * Protected. Gebruiker kan alleen zijn eigen wachtwoord wijzigen.
+ */
+router.patch('/:id/password', auth, validateObjectId('id'), async (req, res, next) => {
+  try {
+    const isOwnProfile = req.user._id.toString() === req.params.id;
+    if (!isOwnProfile) {
+      return next(new AppError('You can only change your own password', 403));
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return next(new AppError('currentPassword and newPassword are required', 400));
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      return next(new AppError('New password must be at least 8 characters', 400));
+    }
+    if (currentPassword === newPassword) {
+      return next(new AppError('New password must differ from current password', 400));
+    }
+
+    // Password ophalen — veld is nu select:false, dus expliciet selecteren
+    const user = await User.findById(req.params.id).select('+password');
+    if (!user) return next(new AppError('User not found', 404));
+
+    const isCorrect = await user.comparePassword(currentPassword);
+    if (!isCorrect) {
+      return next(new AppError('Current password is incorrect', 401));
+    }
+
+    user.password = newPassword; // pre-save hook hasht automatisch
+    await user.save();
+
+    res.status(200).json({ status: 'success', message: 'Password updated successfully' });
+  } catch (err) {
     next(err);
   }
 });
