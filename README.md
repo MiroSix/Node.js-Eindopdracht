@@ -2,8 +2,12 @@
 
 REST API voor het beheren van gaming toernooien, teams en matches.
 
-**Live API:** `https://staatnognietonline`
-**Documentatie:** `https://url/api-docs`
+**Live API:** `https://node-js-eindopdracht.onrender.com`
+Render is gratis, het kan dus even duren voordat de API opstart als hij in slaapmodus ging.
+
+**Documentatie:** `https://node-js-eindopdracht.onrender.com/api-docs`
+De documentatie staat via swagger op dezelfde link bij /api-docs
+
 
 ---
 
